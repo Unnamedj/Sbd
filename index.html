@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlanCrazy — Planes Locos con Amigos</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1c1c2e;
+      --border: #2a2a3e;
+      --accent: #7c3aed;
+      --accent2: #ec4899;
+      --accent3: #06b6d4;
+      --accent4: #10b981;
+      --accent5: #f59e0b;
+      --text: #f1f0ff;
+      --muted: #7b7b9b;
+      --danger: #ef4444;
+      --gradient: linear-gradient(135deg, #7c3aed, #ec4899);
+      --gradient2: linear-gradient(135deg, #06b6d4, #10b981);
+      --gradient3: linear-gradient(135deg, #f59e0b, #ec4899);
+      --glow: 0 0 20px rgba(124,58,237,0.4);
+      --glow2: 0 0 20px rgba(236,72,153,0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── ANIMATED BG ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(124,58,237,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 80% 90%, rgba(236,72,153,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 60% 40%, rgba(6,182,212,0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(10,10,15,0.85);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-logo span { font-size: 1.5rem; }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .nav-tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .nav-tab.active {
+      background: var(--gradient);
+      color: #fff;
+      box-shadow: var(--glow);
+    }
+
+    .nav-tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+    /* ── MAIN ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 60px 0 48px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #a78bfa;
+      margin-bottom: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 .grad {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 500px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    /* ── PLAN CARDS GRID ── */
+    .plans-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .plans-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .btn-primary {
+      background: var(--gradient);
+      color: #fff;
+      box-shadow: var(--glow);
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(124,58,237,0.5); }
+
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-danger {
+      background: rgba(239,68,68,0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; }
+
+    /* ── PLAN CARD ── */
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all .25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .plan-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      opacity: 0;
+      transition: opacity .25s;
+    }
+
+    .plan-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: var(--glow);
+    }
+
+    .plan-card:hover::before { opacity: 1; }
+    .plan-card[data-color="purple"]::before { background: var(--gradient); }
+    .plan-card[data-color="cyan"]::before { background: var(--gradient2); }
+    .plan-card[data-color="orange"]::before { background: var(--gradient3); }
+
+    .plan-card-emoji {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .plan-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .plan-card h3 { font-size: 1.1rem; font-weight: 700; }
+
+    .plan-card-date {
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+
+    .plan-card-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .plan-card-progress {
+      margin-bottom: 12px;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      margin-bottom: 6px;
+    }
+
+    .progress-spent { color: var(--accent2); font-weight: 700; }
+    .progress-budget { color: var(--muted); }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width .5s ease;
+    }
+
+    .progress-ok { background: var(--gradient2); }
+    .progress-warn { background: var(--gradient3); }
+    .progress-over { background: linear-gradient(90deg, #ef4444, #ec4899); }
+
+    .plan-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+    }
+
+    .tag-purple { background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+    .tag-pink   { background: rgba(236,72,153,0.2); color: #f9a8d4; border: 1px solid rgba(236,72,153,0.3); }
+    .tag-cyan   { background: rgba(6,182,212,0.2);  color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
+    .tag-green  { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .tag-amber  { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state .emoji { font-size: 4rem; margin-bottom: 16px; display: block; }
+    .empty-state h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .empty-state p { font-size: 0.9rem; max-width: 300px; margin: 0 auto 24px; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+    }
+
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 540px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px;
+      transform: translateY(20px);
+      transition: transform .25s;
+    }
+
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .modal-title { font-size: 1.3rem; font-weight: 800; }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+
+    .modal-close:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 20px; }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
+    }
+
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .emoji-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .emoji-option {
+      font-size: 1.6rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: var(--surface2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+    }
+
+    .emoji-option:hover, .emoji-option.selected {
+      border-color: var(--accent);
+      background: rgba(124,58,237,0.15);
+      transform: scale(1.1);
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 10px;
+    }
+
+    .color-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .color-option.selected { border-color: #fff; transform: scale(1.15); }
+    .color-option[data-c="purple"] { background: var(--gradient); }
+    .color-option[data-c="cyan"] { background: var(--gradient2); }
+    .color-option[data-c="orange"] { background: var(--gradient3); }
+
+    .form-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── DETAIL PAGE ── */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      margin-bottom: 28px;
+      transition: color .2s;
+    }
+
+    .back-btn:hover { color: var(--accent); }
+
+    .detail-hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .detail-hero::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(124,58,237,0.08);
+      pointer-events: none;
+    }
+
+    .detail-hero-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .detail-emoji { font-size: 3rem; }
+
+    .detail-title-block h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 4px; }
+    .detail-title-block p { color: var(--muted); font-size: 0.95rem; }
+
+    .detail-date-badge {
+      margin-left: auto;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 12px;
+      padding: 8px 14px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .detail-date-badge .date-day { font-size: 1.5rem; font-weight: 900; color: var(--accent); display: block; }
+    .detail-date-badge .date-month { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .budget-display {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .budget-stat {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .budget-stat-value {
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .budget-stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-total { color: var(--accent3); }
+    .stat-spent { color: var(--accent2); }
+    .stat-left-ok { color: var(--accent4); }
+    .stat-left-over { color: var(--danger); }
+
+    .big-progress {
+      margin-top: 16px;
+    }
+
+    .big-progress-bar {
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .big-progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width .6s ease;
+    }
+
+    /* ── TABS INSIDE DETAIL ── */
+    .detail-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+
+    .detail-tab {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all .2s;
+      text-align: center;
+    }
+
+    .detail-tab.active {
+      background: var(--gradient);
+      color: #fff;
+      box-shadow: var(--glow);
+    }
+
+    .detail-tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+    .detail-panel { display: none; }
+    .detail-panel.active { display: block; }
+
+    /* ── GASTOS LIST ── */
+    .add-gasto-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: end;
+    }
+
+    .gastos-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .gasto-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      transition: all .2s;
+    }
+
+    .gasto-item:hover { border-color: var(--border); background: var(--surface2); }
+
+    .gasto-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(124,58,237,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .gasto-info { flex: 1; min-width: 0; }
+    .gasto-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gasto-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    .gasto-amount {
+      font-weight: 900;
+      font-size: 1rem;
+      color: var(--accent2);
+      flex-shrink: 0;
+    }
+
+    .gasto-delete {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+
+    .gasto-delete:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
+
+    /* ── IDEAS / CALENDARIO ── */
+    .ideas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .idea-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .idea-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+
+    .idea-card.used { opacity: 0.5; }
+
+    .idea-emoji { font-size: 2rem; margin-bottom: 8px; display: block; }
+    .idea-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+    .idea-cost { font-size: 0.8rem; color: var(--accent4); font-weight: 600; }
+    .idea-desc { font-size: 0.78rem; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+    .idea-add-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 26px;
+      height: 26px;
+      background: var(--gradient);
+      border-radius: 6px;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .idea-card:hover .idea-add-btn { opacity: 1; }
+
+    /* ── CALENDAR ── */
+    .calendar-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+    }
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .calendar-header h3 { font-size: 1.1rem; font-weight: 700; }
+
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cal-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+    }
+
+    .cal-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .calendar-month-label { font-size: 0.9rem; font-weight: 700; min-width: 110px; text-align: center; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-day-name {
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 6px 0;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: all .15s;
+      border: 1px solid transparent;
+    }
+
+    .cal-day:hover:not(.empty) { background: var(--surface2); border-color: var(--border); }
+    .cal-day.empty { pointer-events: none; }
+    .cal-day.today { background: rgba(124,58,237,0.15); border-color: var(--accent); color: var(--accent); }
+    .cal-day.has-event { background: rgba(236,72,153,0.12); border-color: rgba(236,72,153,0.3); }
+    .cal-day.has-event::after {
+      content: '';
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--accent2);
+      position: absolute;
+      bottom: 4px;
+    }
+
+    .cal-day.plan-day {
+      background: var(--gradient);
+      color: #fff;
+      box-shadow: var(--glow);
+      border-color: transparent;
+    }
+
+    /* ── STATS PAGE ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: attr(data-icon);
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      font-size: 2rem;
+      opacity: 0.3;
+    }
+
+    .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; font-weight: 700; }
+    .stat-value { font-size: 2rem; font-weight: 900; }
+    .stat-sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+    .category-breakdown { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; }
+    .category-breakdown h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .cat-emoji { font-size: 1.2rem; width: 28px; text-align: center; }
+    .cat-info { flex: 1; }
+    .cat-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+    .cat-bar { height: 4px; background: var(--surface2); border-radius: 999px; overflow: hidden; }
+    .cat-fill { height: 100%; border-radius: 999px; }
+    .cat-amount { font-size: 0.85rem; font-weight: 700; color: var(--accent2); flex-shrink: 0; }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn .3s ease, fadeOut .3s ease 2.5s forwards;
+      max-width: 280px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { transform: translateX(40px); opacity: 0; } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav { padding: 0 12px; }
+      .nav-tabs { gap: 2px; }
+      .nav-tab { padding: 7px 10px; font-size: 0.78rem; }
+      main { padding: 20px 12px 60px; }
+      .form-row { grid-template-columns: 1fr; }
+      .add-gasto-row { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
+      .budget-display { grid-template-columns: 1fr 1fr; }
+      .budget-display .budget-stat:last-child { grid-column: 1 / -1; }
+    }
+
+    /* ── PULSE ANIMATION ── */
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+    .pulse { animation: pulse 2s infinite; }
+
+    /* ── IDEAS PAGE ── */
+    .ideas-page-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .idea-page-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      transition: all .25s;
+    }
+
+    .idea-page-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: var(--glow); }
+    .idea-page-card .idea-emoji { font-size: 2.5rem; margin-bottom: 12px; }
+    .idea-page-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .idea-page-card p { font-size: 0.83rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+
+    .idea-cost-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent4);
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><span>🌪️</span> PlanCrazy</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('planes')">Mis Planes</button>
+    <button class="nav-tab" onclick="showPage('ideas')">Ideas Locas</button>
+    <button class="nav-tab" onclick="showPage('stats')">Resumen</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ══ PAGE: PLANES ══ -->
+  <div id="page-planes" class="page active">
+    <div class="hero">
+      <div class="hero-badge">🔥 Modo Squad activado</div>
+      <h1>Planes <span class="grad">Épicos</span><br/>con tus Amigos</h1>
+      <p>Organiza cada aventura loca, controla el presupuesto y nunca te quedes sin fondos a mitad del plan.</p>
+    </div>
+
+    <div class="plans-header">
+      <h2>Tus Planes 🗺️</h2>
+      <button class="btn btn-primary" onclick="openModal('nuevo')">+ Nuevo Plan</button>
+    </div>
+
+    <div id="plans-grid" class="plans-grid">
+      <div class="empty-state" id="empty-state">
+        <span class="emoji">🌴</span>
+        <h3>Sin planes todavía</h3>
+        <p>Crea tu primer plan loco y empieza a organizar la aventura con tu squad.</p>
+        <button class="btn btn-primary" onclick="openModal('nuevo')">+ Crear primer plan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: IDEAS ══ -->
+  <div id="page-ideas" class="page">
+    <div class="hero" style="padding-bottom:32px;">
+      <div class="hero-badge">💡 Inspiración infinita</div>
+      <h1>Ideas <span class="grad">Locas</span></h1>
+      <p>No sabes qué hacer con tus amigos? Aquí tienes ideas épicas para cualquier presupuesto.</p>
+    </div>
+
+    <div class="ideas-page-grid" id="ideas-page-grid"></div>
+  </div>
+
+  <!-- ══ PAGE: STATS ══ -->
+  <div id="page-stats" class="page">
+    <div class="hero" style="padding-bottom:32px;">
+      <div class="hero-badge">📊 Control total</div>
+      <h1><span class="grad">Resumen</span> General</h1>
+    </div>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card" data-icon="🗺️">
+        <div class="stat-label">Total planes</div>
+        <div class="stat-value" id="s-planes" style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">0</div>
+        <div class="stat-sub">activos</div>
+      </div>
+      <div class="stat-card" data-icon="💸">
+        <div class="stat-label">Total gastado</div>
+        <div class="stat-value" id="s-gastado" style="color:var(--accent2);">$0</div>
+        <div class="stat-sub">en todos los planes</div>
+      </div>
+      <div class="stat-card" data-icon="🎯">
+        <div class="stat-label">Presupuesto total</div>
+        <div class="stat-value" id="s-presupuesto" style="color:var(--accent3);">$0</div>
+        <div class="stat-sub">asignado</div>
+      </div>
+      <div class="stat-card" data-icon="✅">
+        <div class="stat-label">Ahorrado</div>
+        <div class="stat-value" id="s-ahorrado" style="color:var(--accent4);">$0</div>
+        <div class="stat-sub">disponible</div>
+      </div>
+    </div>
+
+    <div class="category-breakdown">
+      <h3>Desglose por Categoría 🏷️</h3>
+      <div id="cat-breakdown"></div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: DETALLE ══ -->
+  <div id="page-detalle" class="page">
+    <button class="back-btn" onclick="showPage('planes')">← Volver a Mis Planes</button>
+
+    <div class="detail-hero" id="detail-hero">
+      <div class="detail-hero-top">
+        <span class="detail-emoji" id="d-emoji">🎉</span>
+        <div class="detail-title-block">
+          <h2 id="d-title">Cargando...</h2>
+          <p id="d-desc">...</p>
+        </div>
+        <div class="detail-date-badge">
+          <span class="date-day" id="d-day">—</span>
+          <span class="date-month" id="d-month">—</span>
+        </div>
+      </div>
+
+      <div class="budget-display">
+        <div class="budget-stat">
+          <span class="budget-stat-value stat-total" id="d-budget">$0</span>
+          <span class="budget-stat-label">Presupuesto</span>
+        </div>
+        <div class="budget-stat">
+          <span class="budget-stat-value stat-spent" id="d-spent">$0</span>
+          <span class="budget-stat-label">Gastado</span>
+        </div>
+        <div class="budget-stat">
+          <span class="budget-stat-value" id="d-left" style="color:var(--accent4)">$0</span>
+          <span class="budget-stat-label">Restante</span>
+        </div>
+      </div>
+
+      <div class="big-progress" style="margin-top:18px;">
+        <div class="big-progress-bar">
+          <div class="big-progress-fill" id="d-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="showDetailTab('gastos')">💸 Gastos</button>
+      <button class="detail-tab" onclick="showDetailTab('ideas')">💡 Ideas</button>
+      <button class="detail-tab" onclick="showDetailTab('calendario')">📅 Calendario</button>
+    </div>
+
+    <!-- Gastos -->
+    <div id="dp-gastos" class="detail-panel active">
+      <div class="add-gasto-row">
+        <input type="text" class="form-input" id="new-gasto-name" placeholder="¿En qué gastaron?" />
+        <input type="number" class="form-input" id="new-gasto-amount" placeholder="$" min="0" />
+        <select class="form-select" id="new-gasto-cat">
+          <option value="🍕">🍕 Comida</option>
+          <option value="🚗">🚗 Transporte</option>
+          <option value="🏨">🏨 Alojamiento</option>
+          <option value="🎢">🎢 Actividad</option>
+          <option value="🛍️">🛍️ Compras</option>
+          <option value="🍺">🍺 Bebida</option>
+          <option value="🎶">🎶 Entretenimiento</option>
+          <option value="💊">💊 Otro</option>
+        </select>
+        <button class="btn btn-primary" onclick="addGasto()">Añadir</button>
+      </div>
+      <div id="gastos-list" class="gastos-list"></div>
+    </div>
+
+    <!-- Ideas del plan -->
+    <div id="dp-ideas" class="detail-panel">
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:18px;">Haz clic en una idea para añadirla como gasto al plan.</p>
+      <div id="detail-ideas-grid" class="ideas-grid"></div>
+    </div>
+
+    <!-- Calendario -->
+    <div id="dp-calendario" class="detail-panel">
+      <div class="calendar-section">
+        <div class="calendar-header">
+          <h3>📅 Calendario del Plan</h3>
+          <div class="calendar-nav">
+            <button class="cal-btn" onclick="changeMonth(-1)">‹</button>
+            <span class="calendar-month-label" id="cal-label">—</span>
+            <button class="cal-btn" onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <div class="calendar-grid" id="cal-grid"></div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <div class="plans-header" style="margin-bottom:16px;">
+          <h3 style="font-size:1rem;font-weight:700;">Eventos del Plan</h3>
+          <button class="btn btn-primary btn-sm" onclick="openModal('evento')">+ Agregar Evento</button>
+        </div>
+        <div id="events-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ══ MODAL: NUEVO PLAN ══ -->
+<div class="modal-overlay" id="modal-nuevo">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🗺️ Nuevo Plan Loco</span>
+      <button class="modal-close" onclick="closeModal('nuevo')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Elige un emoji</label>
+      <div class="emoji-picker">
+        <div class="emoji-option selected" data-e="🏖️" onclick="pickEmoji(this)">🏖️</div>
+        <div class="emoji-option" data-e="🏔️" onclick="pickEmoji(this)">🏔️</div>
+        <div class="emoji-option" data-e="🎡" onclick="pickEmoji(this)">🎡</div>
+        <div class="emoji-option" data-e="🍻" onclick="pickEmoji(this)">🍻</div>
+        <div class="emoji-option" data-e="🎮" onclick="pickEmoji(this)">🎮</div>
+        <div class="emoji-option" data-e="🚀" onclick="pickEmoji(this)">🚀</div>
+        <div class="emoji-option" data-e="🌮" onclick="pickEmoji(this)">🌮</div>
+        <div class="emoji-option" data-e="🎵" onclick="pickEmoji(this)">🎵</div>
+        <div class="emoji-option" data-e="🎲" onclick="pickEmoji(this)">🎲</div>
+        <div class="emoji-option" data-e="🏄" onclick="pickEmoji(this)">🏄</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nombre del plan</label>
+      <input type="text" class="form-input" id="plan-name" placeholder="Ej: Viaje a la playa del año" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <textarea class="form-textarea" id="plan-desc" placeholder="¿De qué va este plan épico?"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Presupuesto total ($)</label>
+        <input type="number" class="form-input" id="plan-budget" placeholder="0" min="0" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha del plan</label>
+        <input type="date" class="form-input" id="plan-date" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Color del plan</label>
+      <div class="color-picker">
+        <div class="color-option selected" data-c="purple" onclick="pickColor(this)"></div>
+        <div class="color-option" data-c="cyan" onclick="pickColor(this)"></div>
+        <div class="color-option" data-c="orange" onclick="pickColor(this)"></div>
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nuevo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePlan()">🚀 Crear Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: EVENTO ══ -->
+<div class="modal-overlay" id="modal-evento">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📅 Nuevo Evento</span>
+      <button class="modal-close" onclick="closeModal('evento')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nombre del evento</label>
+      <input type="text" class="form-input" id="ev-name" placeholder="Ej: Pagar alquiler del lugar" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input type="date" class="form-input" id="ev-date" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="ev-type">
+          <option value="🎯">🎯 Hito del plan</option>
+          <option value="💳">💳 Pago pendiente</option>
+          <option value="📦">📦 Preparación</option>
+          <option value="🎉">🎉 El día del plan</option>
+          <option value="⚠️">⚠️ Recordatorio</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nota (opcional)</label>
+      <input type="text" class="form-input" id="ev-note" placeholder="Detalles..." />
+    </div>
+
+    <div class="form-footer">
+      <button class="btn btn-ghost" onclick="closeModal('evento')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEvento()">Guardar Evento</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ══ DATA ══
+let plans = JSON.parse(localStorage.getItem('plancrazy_plans') || '[]');
+let currentPlanId = null;
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+const IDEAS = [
+  { emoji: '🏕️', title: 'Camping salvaje', desc: 'Una noche bajo las estrellas con fogata, guitarras y cero señal. Perfecto para desconectar.', cost: 'Bajo ($20-80)' },
+  { emoji: '🍣', title: 'Sushi + karaoke', desc: 'Cena épica de sushi seguido de karaoke hasta las 2am. La combo perfecta.', cost: 'Medio ($50-120)' },
+  { emoji: '🎢', title: 'Día de parque', desc: 'Todo el día en el parque de diversiones. Subas, gritos y fotos ridículas garantizadas.', cost: 'Medio ($60-100)' },
+  { emoji: '🏄', title: 'Surf o paddle', desc: 'Clases de surf o paddle boarding en la playa. Nadie sabe hacerlo y eso es lo divertido.', cost: 'Bajo ($30-60)' },
+  { emoji: '🎮', title: 'Noche gamer', desc: 'LAN party épica con torneos, apuestas ridículas y pizza a las 3am.', cost: 'Muy bajo ($10-30)' },
+  { emoji: '🚐', title: 'Road trip improvisado', desc: 'Metan a todos en un carro y conduzcan sin plan fijo. El destino se decide a mitad del camino.', cost: 'Variable ($50-200)' },
+  { emoji: '🎭', title: 'Escape room', desc: 'Enciérrense 60 min a resolver puzzles. El que falle en el último minuto paga las cervezas.', cost: 'Bajo ($20-40 c/u)' },
+  { emoji: '🏊', title: 'Pool party', desc: 'Alquilen una casa con piscina para el fin de semana. BBQ incluido, fiesta asegurada.', cost: 'Medio ($40-100 c/u)' },
+  { emoji: '🌮', title: 'Tour gastronómico', desc: 'Recorran 5 restaurantes distintos comiendo solo entradas o tacos en cada uno.', cost: 'Bajo ($25-50)' },
+  { emoji: '🎨', title: 'Noche de arte', desc: 'Wine & paint: todos dibujan lo mismo, todos fallan diferente. El peor paga la siguiente ronda.', cost: 'Bajo ($15-35)' },
+  { emoji: '🏔️', title: 'Senderismo épico', desc: 'Madrugar, subir una montaña, llegar al top, sacar la foto épica. Bajar con hambre brutal.', cost: 'Muy bajo ($0-20)' },
+  { emoji: '🎪', title: 'Festival o concierto', desc: 'Compren entradas para el próximo festival. Planeen outfits ridículos de antemano.', cost: 'Alto ($100-300)' },
+];
+
+// ══ UTILS ══
+function save() { localStorage.setItem('plancrazy_plans', JSON.stringify(plans)); }
+function toast(msg, type = 'ok') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = (type === 'ok' ? '✅' : type === 'warn' ? '⚠️' : '❌') + ' ' + msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+function fmt(n) { return '$' + Number(n).toLocaleString('es'); }
+
+// ══ NAVIGATION ══
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const tabMap = { planes: 0, ideas: 1, stats: 2, detalle: -1 };
+  const tabs = document.querySelectorAll('.nav-tab');
+  if (tabMap[id] >= 0) tabs[tabMap[id]].classList.add('active');
+  if (id === 'stats') renderStats();
+  if (id === 'ideas') renderIdeasPage();
+  if (id === 'planes') renderPlans();
+}
+
+// ══ MODALS ══
+function openModal(id) {
+  const m = document.getElementById('modal-' + id);
+  m.classList.add('open');
+  if (id === 'evento' && currentPlanId) {
+    const plan = plans.find(p => p.id === currentPlanId);
+    if (plan?.date) document.getElementById('ev-date').value = plan.date;
+  }
+}
+
+function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ══ EMOJI / COLOR PICKERS ══
+let selectedEmoji = '🏖️';
+let selectedColor = 'purple';
+
+function pickEmoji(el) {
+  document.querySelectorAll('.emoji-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedEmoji = el.dataset.e;
+}
+
+function pickColor(el) {
+  document.querySelectorAll('.color-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedColor = el.dataset.c;
+}
+
+// ══ SAVE PLAN ══
+function savePlan() {
+  const name = document.getElementById('plan-name').value.trim();
+  const desc = document.getElementById('plan-desc').value.trim();
+  const budget = parseFloat(document.getElementById('plan-budget').value) || 0;
+  const date = document.getElementById('plan-date').value;
+
+  if (!name) { toast('Ponle un nombre al plan', 'warn'); return; }
+  if (!budget) { toast('Agrega el presupuesto', 'warn'); return; }
+  if (!date) { toast('Selecciona la fecha del plan', 'warn'); return; }
+
+  const plan = {
+    id: Date.now().toString(),
+    name, desc, budget, date,
+    emoji: selectedEmoji,
+    color: selectedColor,
+    gastos: [],
+    events: [],
+    createdAt: new Date().toISOString()
+  };
+
+  plans.unshift(plan);
+  save();
+  closeModal('nuevo');
+  renderPlans();
+  toast('Plan creado! 🚀');
+  document.getElementById('plan-name').value = '';
+  document.getElementById('plan-desc').value = '';
+  document.getElementById('plan-budget').value = '';
+  document.getElementById('plan-date').value = '';
+}
+
+// ══ RENDER PLANS ══
+function renderPlans() {
+  const grid = document.getElementById('plans-grid');
+  const empty = document.getElementById('empty-state');
+  if (!plans.length) {
+    grid.innerHTML = '';
+    grid.appendChild(empty);
+    return;
+  }
+  grid.innerHTML = plans.map(p => {
+    const spent = p.gastos.reduce((a, g) => a + g.amount, 0);
+    const pct = p.budget ? Math.min((spent / p.budget) * 100, 100) : 0;
+    const cls = pct < 70 ? 'progress-ok' : pct < 95 ? 'progress-warn' : 'progress-over';
+    const d = p.date ? new Date(p.date + 'T12:00:00') : null;
+    const dateStr = d ? d.toLocaleDateString('es', { day: 'numeric', month: 'short' }) : '—';
+    return `
+      <div class="plan-card" data-color="${p.color}" onclick="openDetail('${p.id}')">
+        <span class="plan-card-emoji">${p.emoji}</span>
+        <div class="plan-card-header">
+          <h3>${p.name}</h3>
+          <span class="plan-card-date">📅 ${dateStr}</span>
+        </div>
+        <p class="plan-card-desc">${p.desc || 'Sin descripción todavía.'}</p>
+        <div class="plan-card-progress">
+          <div class="progress-labels">
+            <span class="progress-spent">${fmt(spent)} gastado</span>
+            <span class="progress-budget">de ${fmt(p.budget)}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div>
+        </div>
+        <div class="plan-card-tags">
+          <span class="tag tag-purple">${p.gastos.length} gasto${p.gastos.length !== 1 ? 's' : ''}</span>
+          ${p.events.length ? `<span class="tag tag-cyan">${p.events.length} evento${p.events.length !== 1 ? 's' : ''}</span>` : ''}
+          ${pct >= 90 ? '<span class="tag tag-pink">🔥 Casi sin fondos</span>' : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══ OPEN DETAIL ══
+function openDetail(id) {
+  currentPlanId = id;
+  const plan = plans.find(p => p.id === id);
+  if (!plan) return;
+
+  const d = plan.date ? new Date(plan.date + 'T12:00:00') : null;
+  document.getElementById('d-emoji').textContent = plan.emoji;
+  document.getElementById('d-title').textContent = plan.name;
+  document.getElementById('d-desc').textContent = plan.desc || 'Sin descripción.';
+  document.getElementById('d-day').textContent = d ? d.getDate() : '—';
+  document.getElementById('d-month').textContent = d ? d.toLocaleString('es', { month: 'short', year: 'numeric' }) : '—';
+
+  refreshDetail();
+  showPage('detalle');
+  document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.detail-panel').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.detail-tab')[0].classList.add('active');
+  document.getElementById('dp-gastos').classList.add('active');
+
+  if (d) { calYear = d.getFullYear(); calMonth = d.getMonth(); }
+  renderCalendar();
+  renderDetailIdeas();
+}
+
+function refreshDetail() {
+  const plan = plans.find(p => p.id === currentPlanId);
+  if (!plan) return;
+  const spent = plan.gastos.reduce((a, g) => a + g.amount, 0);
+  const left = plan.budget - spent;
+  const pct = plan.budget ? Math.min((spent / plan.budget) * 100, 100) : 0;
+  const cls = pct < 70 ? 'progress-ok' : pct < 95 ? 'progress-warn' : 'progress-over';
+
+  document.getElementById('d-budget').textContent = fmt(plan.budget);
+  document.getElementById('d-spent').textContent = fmt(spent);
+  const leftEl = document.getElementById('d-left');
+  leftEl.textContent = fmt(Math.abs(left));
+  leftEl.style.color = left >= 0 ? 'var(--accent4)' : 'var(--danger)';
+  const fill = document.getElementById('d-progress-fill');
+  fill.style.width = pct + '%';
+  fill.className = 'big-progress-fill ' + cls;
+
+  renderGastos();
+}
+
+// ══ GASTOS ══
+function addGasto() {
+  const name = document.getElementById('new-gasto-name').value.trim();
+  const amount = parseFloat(document.getElementById('new-gasto-amount').value) || 0;
+  const cat = document.getElementById('new-gasto-cat').value;
+  if (!name) { toast('Escribe en qué gastaron', 'warn'); return; }
+  if (!amount) { toast('Agrega el monto', 'warn'); return; }
+
+  const plan = plans.find(p => p.id === currentPlanId);
+  plan.gastos.push({ id: Date.now().toString(), name, amount, cat, date: new Date().toISOString() });
+  save();
+  document.getElementById('new-gasto-name').value = '';
+  document.getElementById('new-gasto-amount').value = '';
+  refreshDetail();
+  toast('Gasto añadido 💸');
+}
+
+function deleteGasto(gid) {
+  const plan = plans.find(p => p.id === currentPlanId);
+  plan.gastos = plan.gastos.filter(g => g.id !== gid);
+  save();
+  refreshDetail();
+  toast('Gasto eliminado', 'warn');
+}
+
+function renderGastos() {
+  const plan = plans.find(p => p.id === currentPlanId);
+  const el = document.getElementById('gastos-list');
+  if (!plan.gastos.length) {
+    el.innerHTML = '<div class="empty-state"><span class="emoji">💰</span><h3>Sin gastos</h3><p>Añade el primer gasto del plan arriba.</p></div>';
+    return;
+  }
+  el.innerHTML = [...plan.gastos].reverse().map(g => {
+    const d = new Date(g.date).toLocaleDateString('es', { day: 'numeric', month: 'short' });
+    return `
+      <div class="gasto-item">
+        <div class="gasto-icon">${g.cat}</div>
+        <div class="gasto-info">
+          <div class="gasto-name">${g.name}</div>
+          <div class="gasto-meta">${d}</div>
+        </div>
+        <div class="gasto-amount">${fmt(g.amount)}</div>
+        <button class="gasto-delete" onclick="deleteGasto('${g.id}')">🗑</button>
+      </div>`;
+  }).join('');
+}
+
+// ══ DETAIL TABS ══
+function showDetailTab(tab) {
+  document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.detail-panel').forEach(t => t.classList.remove('active'));
+  const tabMap = { gastos: 0, ideas: 1, calendario: 2 };
+  document.querySelectorAll('.detail-tab')[tabMap[tab]].classList.add('active');
+  document.getElementById('dp-' + tab).classList.add('active');
+  if (tab === 'calendario') renderCalendar();
+}
+
+// ══ IDEAS ══
+function renderIdeasPage() {
+  document.getElementById('ideas-page-grid').innerHTML = IDEAS.map(i => `
+    <div class="idea-page-card">
+      <span class="idea-emoji">${i.emoji}</span>
+      <h3>${i.title}</h3>
+      <p>${i.desc}</p>
+      <span class="idea-cost-badge">💰 ${i.cost}</span>
+    </div>`).join('');
+}
+
+function renderDetailIdeas() {
+  document.getElementById('detail-ideas-grid').innerHTML = IDEAS.map((i, idx) => `
+    <div class="idea-card" onclick="useIdea(${idx})">
+      <button class="idea-add-btn" title="Usar idea">+</button>
+      <span class="idea-emoji">${i.emoji}</span>
+      <div class="idea-title">${i.title}</div>
+      <div class="idea-cost">${i.cost}</div>
+      <div class="idea-desc">${i.desc}</div>
+    </div>`).join('');
+}
+
+function useIdea(idx) {
+  const idea = IDEAS[idx];
+  document.getElementById('new-gasto-name').value = idea.title;
+  showDetailTab('gastos');
+  toast('Idea cargada! Agrega el monto 💡');
+}
+
+// ══ CALENDAR ══
+function renderCalendar() {
+  const plan = plans.find(p => p.id === currentPlanId);
+  const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-label').textContent = `${months[calMonth]} ${calYear}`;
+
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const days = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+  const planDate = plan?.date ? new Date(plan.date + 'T12:00:00') : null;
+
+  const eventDays = new Set();
+  (plan?.events || []).forEach(ev => {
+    const d = new Date(ev.date + 'T12:00:00');
+    if (d.getFullYear() === calYear && d.getMonth() === calMonth) eventDays.add(d.getDate());
+  });
+
+  const dayNames = ['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+  let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+  for (let i = 0; i < first; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= days; d++) {
+    const isToday = today.getDate() === d && today.getMonth() === calMonth && today.getFullYear() === calYear;
+    const isPlan = planDate && planDate.getDate() === d && planDate.getMonth() === calMonth && planDate.getFullYear() === calYear;
+    const hasEv = eventDays.has(d);
+    let cls = 'cal-day';
+    if (isPlan) cls += ' plan-day';
+    else if (isToday) cls += ' today';
+    else if (hasEv) cls += ' has-event';
+    html += `<div class="${cls}">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+  renderEventsList();
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderEventsList() {
+  const plan = plans.find(p => p.id === currentPlanId);
+  const el = document.getElementById('events-list');
+  if (!plan?.events?.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:20px;">Sin eventos. Agrega hitos del plan.</div>';
+    return;
+  }
+  el.innerHTML = [...plan.events].sort((a,b) => a.date.localeCompare(b.date)).map(ev => {
+    const d = new Date(ev.date + 'T12:00:00').toLocaleDateString('es', { weekday: 'short', day: 'numeric', month: 'long' });
+    return `
+      <div class="gasto-item">
+        <div class="gasto-icon">${ev.type}</div>
+        <div class="gasto-info">
+          <div class="gasto-name">${ev.name}</div>
+          <div class="gasto-meta">${d}${ev.note ? ' · ' + ev.note : ''}</div>
+        </div>
+        <button class="gasto-delete" onclick="deleteEvent('${ev.id}')">🗑</button>
+      </div>`;
+  }).join('');
+}
+
+function saveEvento() {
+  const name = document.getElementById('ev-name').value.trim();
+  const date = document.getElementById('ev-date').value;
+  const type = document.getElementById('ev-type').value;
+  const note = document.getElementById('ev-note').value.trim();
+  if (!name) { toast('Ponle nombre al evento', 'warn'); return; }
+  if (!date) { toast('Selecciona una fecha', 'warn'); return; }
+
+  const plan = plans.find(p => p.id === currentPlanId);
+  if (!plan.events) plan.events = [];
+  plan.events.push({ id: Date.now().toString(), name, date, type, note });
+  save();
+  closeModal('evento');
+  renderCalendar();
+  toast('Evento guardado 📅');
+  document.getElementById('ev-name').value = '';
+  document.getElementById('ev-note').value = '';
+}
+
+function deleteEvent(eid) {
+  const plan = plans.find(p => p.id === currentPlanId);
+  plan.events = plan.events.filter(e => e.id !== eid);
+  save();
+  renderCalendar();
+  toast('Evento eliminado', 'warn');
+}
+
+// ══ STATS ══
+function renderStats() {
+  const totalGastado = plans.reduce((a, p) => a + p.gastos.reduce((b, g) => b + g.amount, 0), 0);
+  const totalPresup = plans.reduce((a, p) => a + p.budget, 0);
+  document.getElementById('s-planes').textContent = plans.length;
+  document.getElementById('s-gastado').textContent = fmt(totalGastado);
+  document.getElementById('s-presupuesto').textContent = fmt(totalPresup);
+  document.getElementById('s-ahorrado').textContent = fmt(Math.max(0, totalPresup - totalGastado));
+
+  const cats = {};
+  plans.forEach(p => p.gastos.forEach(g => {
+    cats[g.cat] = (cats[g.cat] || 0) + g.amount;
+  }));
+
+  const sortedCats = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+  const maxVal = sortedCats[0]?.[1] || 1;
+  const colors = ['var(--gradient)', 'var(--gradient2)', 'var(--gradient3)', 'linear-gradient(135deg,#a78bfa,#7c3aed)', 'linear-gradient(135deg,#34d399,#06b6d4)'];
+
+  const bd = document.getElementById('cat-breakdown');
+  if (!sortedCats.length) {
+    bd.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Sin gastos registrados todavía.</p>';
+    return;
+  }
+
+  const catNames = { '🍕': 'Comida', '🚗': 'Transporte', '🏨': 'Alojamiento', '🎢': 'Actividad', '🛍️': 'Compras', '🍺': 'Bebida', '🎶': 'Entretenimiento', '💊': 'Otro' };
+  bd.innerHTML = sortedCats.map(([cat, amount], i) => `
+    <div class="cat-row">
+      <span class="cat-emoji">${cat}</span>
+      <div class="cat-info">
+        <div class="cat-name">${catNames[cat] || cat}</div>
+        <div class="cat-bar"><div class="cat-fill" style="width:${(amount/maxVal*100).toFixed(1)}%;background:${colors[i % colors.length]};height:4px;border-radius:999px;"></div></div>
+      </div>
+      <span class="cat-amount">${fmt(amount)}</span>
+    </div>`).join('');
+}
+
+// ══ INIT ══
+renderPlans();
+renderIdeasPage();
+</script>
+</body>
+</html>
