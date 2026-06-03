@@ -5,6 +5,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import nodemailer from 'nodemailer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -68,6 +69,81 @@ function writeDB(state) {
 }
 
 app.use(express.json({ limit: '5mb' }));
+
+// ── EMAIL ─────────────────────────────────────────────────────────────────────
+// Set EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS in Railway env vars.
+// Gmail example: host=smtp.gmail.com, port=465, user=tu@gmail.com, pass=app-password
+function createTransport() {
+  const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = process.env;
+  if (!EMAIL_HOST || !EMAIL_USER || !EMAIL_PASS) return null;
+  return nodemailer.createTransport({
+    host: EMAIL_HOST,
+    port: parseInt(EMAIL_PORT || '465'),
+    secure: parseInt(EMAIL_PORT || '465') === 465,
+    auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+  });
+}
+
+function planEmailHtml({ toName, planName, planDate, planBudget, message }) {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><style>
+  body{margin:0;padding:0;background:#0f0f13;font-family:'Segoe UI',Arial,sans-serif;color:#e2e8f0;}
+  .wrap{max-width:520px;margin:32px auto;background:#1a1a2e;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.08);}
+  .hd{background:linear-gradient(135deg,#7c3aed,#e2407a);padding:32px 28px;text-align:center;}
+  .hd h1{margin:0;font-size:28px;letter-spacing:-1px;}
+  .hd p{margin:6px 0 0;opacity:.85;font-size:13px;}
+  .body{padding:28px;}
+  .pill{display:inline-block;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.4);color:#a78bfa;border-radius:99px;font-size:12px;padding:3px 12px;margin-bottom:20px;}
+  .msg{background:rgba(255,255,255,.05);border-left:3px solid #7c3aed;border-radius:0 10px 10px 0;padding:14px 16px;font-size:14px;line-height:1.7;white-space:pre-wrap;}
+  .meta{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;}
+  .tag{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 14px;font-size:12px;color:#94a3b8;}
+  .tag strong{display:block;color:#e2e8f0;font-size:14px;}
+  .ft{text-align:center;padding:20px;font-size:11px;color:#475569;}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="hd">
+    <h1>🌪️ PlanCrazy</h1>
+    <p>Mensaje para ${toName}</p>
+  </div>
+  <div class="body">
+    <div class="pill">📣 Aviso del squad</div>
+    <div class="msg">${message.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    <div class="meta">
+      <div class="tag"><strong>${planName}</strong>Plan</div>
+      <div class="tag"><strong>${planDate}</strong>Fecha</div>
+      <div class="tag"><strong>${planBudget}</strong>Presupuesto</div>
+    </div>
+  </div>
+  <div class="ft">PlanCrazy &mdash; planes locos con el squad 🔥</div>
+</div>
+</body></html>`;
+}
+
+app.post('/api/notify', async (req, res) => {
+  const { toEmail, toName, planName, planDate, planBudget, message, subject } = req.body || {};
+  if (!toEmail || !message) return res.status(400).json({ error: 'toEmail and message required' });
+
+  const transport = createTransport();
+  if (!transport) {
+    return res.status(503).json({ error: 'Email not configured. Set EMAIL_HOST, EMAIL_USER, EMAIL_PASS env vars.' });
+  }
+
+  try {
+    await transport.sendMail({
+      from: `"PlanCrazy 🌪️" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: subject || `📣 ${planName || 'PlanCrazy'} — aviso del squad`,
+      html: planEmailHtml({ toName, planName, planDate, planBudget, message }),
+      text: message,
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('sendMail failed:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // Get the whole shared state.
 app.get('/api/state', (req, res) => {
