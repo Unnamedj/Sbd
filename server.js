@@ -5,7 +5,6 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import nodemailer from 'nodemailer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -70,19 +69,9 @@ function writeDB(state) {
 
 app.use(express.json({ limit: '5mb' }));
 
-// ── EMAIL ─────────────────────────────────────────────────────────────────────
-// Set EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS in Railway env vars.
-// Gmail example: host=smtp.gmail.com, port=465, user=tu@gmail.com, pass=app-password
-function createTransport() {
-  const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = process.env;
-  if (!EMAIL_HOST || !EMAIL_USER || !EMAIL_PASS) return null;
-  return nodemailer.createTransport({
-    host: EMAIL_HOST,
-    port: parseInt(EMAIL_PORT || '465'),
-    secure: parseInt(EMAIL_PORT || '465') === 465,
-    auth: { user: EMAIL_USER, pass: EMAIL_PASS },
-  });
-}
+// ── EMAIL (Brevo HTTP API — works on Railway, no SMTP port blocks) ─────────────
+// Set BREVO_API_KEY and EMAIL_FROM in Railway env vars.
+// Get a free API key at brevo.com (300 emails/day free).
 
 function planEmailHtml({ toName, planName, planDate, planBudget, message }) {
   return `<!DOCTYPE html>
@@ -125,19 +114,28 @@ app.post('/api/notify', async (req, res) => {
   const { toEmail, toName, planName, planDate, planBudget, message, subject } = req.body || {};
   if (!toEmail || !message) return res.status(400).json({ error: 'toEmail and message required' });
 
-  const transport = createTransport();
-  if (!transport) {
-    return res.status(503).json({ error: 'Email not configured. Set EMAIL_HOST, EMAIL_USER, EMAIL_PASS env vars.' });
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) {
+    return res.status(503).json({ error: 'Email not configured. Set BREVO_API_KEY env var.' });
   }
 
   try {
-    await transport.sendMail({
-      from: `"PlanCrazy 🌪️" <${process.env.EMAIL_USER}>`,
-      to: toEmail,
-      subject: subject || `📣 ${planName || 'PlanCrazy'} — aviso del squad`,
-      html: planEmailHtml({ toName, planName, planDate, planBudget, message }),
-      text: message,
+    const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: 'PlanCrazy 🌪️', email: process.env.EMAIL_FROM || 'noreply@plancrazy.app' },
+        to: [{ email: toEmail, name: toName || toEmail }],
+        subject: subject || `📣 ${planName || 'PlanCrazy'} — aviso del squad`,
+        htmlContent: planEmailHtml({ toName, planName, planDate, planBudget, message }),
+        textContent: message,
+      }),
     });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      console.error('Brevo error:', err);
+      return res.status(500).json({ error: err.message || 'Email failed' });
+    }
     res.json({ ok: true });
   } catch (e) {
     console.error('sendMail failed:', e.message);
